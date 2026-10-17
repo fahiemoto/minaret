@@ -1,0 +1,33 @@
+name: minaret
+description: Luisterapp van Stichting Het Rechte Pad — artikelen van hetrechtepad.nl om te lezen en te beluisteren.
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  # Audio: afspelen + achtergrond/vergrendelscherm (gebruikt audio_service onder de motorkap).
+  just_audio: ^0.10.4
+  just_audio_background: ^0.0.1-beta.17
+  http: ^1.2.2
+  provider: ^6.1.2
+  shared_preferences: ^2.3.0
+  cached_network_image: ^3.4.1
+  # Rendert de veilige HTML uit de API letterlijk (tekst wordt nooit aangepast).
+  flutter_widget_from_html_core: ">=0.15.2 <0.18.0"
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/brand/
