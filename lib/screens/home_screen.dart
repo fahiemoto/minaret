@@ -64,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   floating: true,
                   centerTitle: false,
                   titleSpacing: Space.l,
-                  title: const HrpLogo(height: 16),
+                  title: const HrpLogo(height: 24),
                   actions: [
                     IconButton(
                       tooltip: 'Profiel en instellingen',

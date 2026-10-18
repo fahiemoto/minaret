@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
-/// Ontwerptokens voor de app. Primaire kleur is HRP-rood (#dc143c), conform de huisstijl van de site.
+/// Ontwerptokens voor de app. Primaire kleur is het roze-rood van het Minaret-logo (#f43160).
 class HrpColors {
-  static const red = Color(0xFFDC143C);
-  static const redDeep = Color(0xFFA50E2D);
+  static const red = Color(0xFFF43160);
+  static const redDeep = Color(0xFFE11D46); // stip in het logo
+
+  /// Dezelfde kleur voor CSS in de artikel-HTML.
+  static const redCss = '#f43160';
   static const ink = Color(0xFF151517);
   static const paper = Color(0xFFFAF8F5);
 
@@ -13,7 +16,7 @@ class HrpColors {
 
   /// Warme, rustige palette voor gegenereerde covers en onderwerptegels (geen merk-assets).
   static const palette = <Color>[
-    Color(0xFFDC143C), // HRP-rood
+    Color(0xFFF43160), // Minaret-rood
     Color(0xFF1F3A5F), // inktblauw
     Color(0xFF2F6B4F), // olijfgroen
     Color(0xFFC98A1B), // saffraan

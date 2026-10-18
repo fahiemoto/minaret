@@ -1,0 +1,84 @@
+{
+    "html": "<p data-seg=\"text\">De Profeet <span lang=\"ar\" dir=\"rtl\">ﷺ</span> zei: <em>“Geduld is licht.”</em> Dat is bekend. Zie ook <a href=\"https://www.hetrechtepad.nl/geduld\">dit artikel</a>.<a class=\"ref\" href=\"#bron-1\" id=\"ref-1-1\" data-ref=\"1\" aria-label=\"Bron 1\">[1]</a></p><h2 id=\"soorten-geduld\" data-seg=\"heading\">Soorten geduld</h2><ul><li data-seg=\"item\">Geduld in gehoorzaamheid.<br>Tweede regel!<ul><li data-seg=\"item\">Genest punt.</li></ul></li><li data-seg=\"item\"><strong>Geduld</strong> bij tegenspoed 😀. Echt?</li></ul><blockquote><p data-seg=\"text\" lang=\"ar\" dir=\"rtl\"><span lang=\"ar\" dir=\"rtl\">قَالَ اللَّهُ تَعَالَى: إِنَّ اللَّهَ مَعَ الصَّابِرِينَ</span>. Allah is met de geduldigen.</p><cite data-seg=\"caption\">Koran 2:153</cite></blockquote><section class=\"references\" id=\"bronnen\" aria-labelledby=\"bronnen-titel-0\"><h2 id=\"bronnen-titel-0\" data-hrp-ui>Bronnen</h2><div class=\"refs\" data-seg=\"references\"><div class=\"ref\" id=\"bron-1\" tabindex=\"-1\"><a class=\"ref-back\" data-hrp-ui href=\"#ref-1-1\" data-ref-back=\"1\" aria-label=\"Terug naar verwijzing 1 in de tekst\">↩</a><span class=\"ref-label\">[1]</span><span class=\"ref-body\">Sahih Muslim, 223.</span></div></div></section>",
+    "segments": 9,
+    "sentences": [
+        [
+            0,
+            0,
+            29,
+            "Het geduld (sabr) in de islam"
+        ],
+        [
+            1,
+            0,
+            51,
+            "De Profeet ﷺ zei: “Geduld is licht.” Dat is bekend."
+        ],
+        [
+            1,
+            52,
+            75,
+            "Zie ook dit artikel.[1]"
+        ],
+        [
+            2,
+            0,
+            14,
+            "Soorten geduld"
+        ],
+        [
+            3,
+            0,
+            25,
+            "Geduld in gehoorzaamheid."
+        ],
+        [
+            3,
+            26,
+            39,
+            "Tweede regel!"
+        ],
+        [
+            4,
+            0,
+            12,
+            "Genest punt."
+        ],
+        [
+            5,
+            0,
+            24,
+            "Geduld bij tegenspoed 😀."
+        ],
+        [
+            5,
+            25,
+            30,
+            "Echt?"
+        ],
+        [
+            6,
+            0,
+            57,
+            "قَالَ اللَّهُ تَعَالَى: إِنَّ اللَّهَ مَعَ الصَّابِرِينَ."
+        ],
+        [
+            6,
+            58,
+            85,
+            "Allah is met de geduldigen."
+        ],
+        [
+            7,
+            0,
+            11,
+            "Koran 2:153"
+        ],
+        [
+            8,
+            0,
+            21,
+            "[1]Sahih Muslim, 223."
+        ]
+    ]
+}

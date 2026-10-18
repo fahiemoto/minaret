@@ -21,7 +21,10 @@ dependencies:
   cached_network_image: ^3.4.1
   # Rendert de veilige HTML uit de API letterlijk (tekst wordt nooit aangepast).
   flutter_widget_from_html_core: ">=0.15.2 <0.18.0"
+  # DOM-parser om de actieve zin te markeren zonder de tekst te veranderen.
+  html: ^0.15.4
   url_launcher: ^6.3.1
+  flutter_svg: ^2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -32,3 +35,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/brand/
+    - assets/minaret-logo.svg

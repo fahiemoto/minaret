@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/tokens.dart';
 
@@ -80,19 +81,16 @@ class LoadingView extends StatelessWidget {
       const Center(child: Padding(padding: EdgeInsets.all(Space.xxl), child: CircularProgressIndicator(color: HrpColors.red)));
 }
 
-/// Officieel woordmerk: rood op licht, wit op donker (verhoudingen blijven behouden).
+/// Minaret-logo (vector), in licht en donker thema gelijk.
 class HrpLogo extends StatelessWidget {
   const HrpLogo({super.key, this.height = 18});
   final double height;
 
   @override
-  Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    return Image.asset(
-      dark ? 'assets/brand/logo-wit.png' : 'assets/brand/logo-rood.png',
-      height: height,
-      fit: BoxFit.contain,
-      semanticLabel: 'Het Rechte Pad',
-    );
-  }
+  Widget build(BuildContext context) => SvgPicture.asset(
+        'assets/minaret-logo.svg',
+        height: height,
+        fit: BoxFit.contain,
+        semanticsLabel: 'Minaret',
+      );
 }

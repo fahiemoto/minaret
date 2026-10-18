@@ -14,13 +14,13 @@ Native app voor iOS en Android, gebouwd in Flutter met één codebase. De app to
   - 10 seconden terug en 30 seconden vooruit;
   - snelheid van 0,75× tot 2×;
   - slaaptimer;
-  - "Lees mee";
+  - "Lees mee": de zin die je hoort wordt gemarkeerd en de tekst scrolt mee (zinstijden van de site; uit te zetten in het artikel);
   - verder luisteren waar je gebleven was.
 - **Profiel**: licht, donker of systeemthema, standaard afspeelsnelheid en lokale gegevens wissen. Wissen stopt eerst de speler en slaaptimer.
 - **Links in artikelen**: eigen artikellinks openen in de app; externe links openen in de browser of bijbehorende app.
-- **Gegenereerde covers** in HRP-stijl (rood #dc143c plus palette) als een artikel geen foto heeft.
+- **Gegenereerde covers** in eigen stijl (Minaret-rood #f43160 plus palette) als een artikel geen foto heeft.
 
-Komt later: accounts met synchronisatie, betaalde content, CarPlay/Android Auto en meelezen per zin.
+Komt later: accounts met synchronisatie, betaalde content en CarPlay/Android Auto.
 
 ## Starten
 

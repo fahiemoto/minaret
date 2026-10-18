@@ -76,6 +76,10 @@ class PlayerController extends ChangeNotifier {
 
   bool isCurrent(int articleId) => _current?.id == articleId;
 
+  /// Afspeelpositie, voor meelezen.
+  Stream<Duration> get positionStream => player.positionStream;
+  Duration get position => player.position;
+
   /// Start (of hervat) een artikel. Gaat verder waar je gebleven was, tenzij het al beluisterd is.
   Future<void> playArticle(ArticleDetail article) =>
       _enqueue(() => _playArticle(article));

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +12,7 @@ import '../state/player_controller.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../util/article_links.dart';
+import '../util/read_along.dart';
 import '../widgets/common.dart';
 import '../widgets/cover_art.dart';
 import '../widgets/mini_player.dart';
@@ -31,16 +34,102 @@ class ArticleScreen extends StatefulWidget {
 class _ArticleScreenState extends State<ArticleScreen> {
   late Future<ArticleDetail> _future;
 
+  // Meelezen: zinstijden van de site, de huidige zin en de tekst met die zin gemarkeerd.
+  late final PlayerController _player;
+  StreamSubscription<Duration>? _positionSub;
+  ArticleDetail? _detail;
+  ReadAlongDocument? _readDoc;
+  ReadAlongTimings? _timings;
+  bool _readAlongOn = true;
+  int _sentence = -1;
+  String? _markedHtml;
+  final _anchorKey = GlobalKey();
+  DateTime _userScrolledAt = DateTime.fromMillisecondsSinceEpoch(0);
+
   @override
   void initState() {
     super.initState();
+    _player = context.read<PlayerController>();
+    _positionSub = _player.positionStream.listen(_onPosition);
     _future = _load();
   }
 
-  Future<ArticleDetail> _load() =>
-      context.read<ApiClient>().article(widget.summary?.slug ?? widget.slug!);
+  @override
+  void dispose() {
+    _positionSub?.cancel();
+    super.dispose();
+  }
+
+  Future<ArticleDetail> _load() async {
+    final api = context.read<ApiClient>();
+    final detail = await api.article(widget.summary?.slug ?? widget.slug!);
+    _detail = detail;
+    unawaited(_loadTimings(api, detail));
+    return detail;
+  }
+
+  Future<void> _loadTimings(ApiClient api, ArticleDetail detail) async {
+    final url = detail.audio.timingsUrl;
+    if (url == null) return;
+    final timings = await api.readAlongTimings(url);
+    if (timings == null || !mounted || _detail != detail) return;
+    final doc = ReadAlongDocument(detail.html);
+    // Klopt de indeling niet met deze tekst, dan liever geen markering dan een verkeerde.
+    if (!timings.matches(doc)) return;
+    setState(() {
+      _readDoc = doc;
+      _timings = timings;
+    });
+    _onPosition(_player.position);
+  }
 
   void _retry() => setState(() => _future = _load());
+
+  void _onPosition(Duration position) {
+    final timings = _timings;
+    final detail = _detail;
+    final index = timings == null ||
+            detail == null ||
+            !_readAlongOn ||
+            !_player.isCurrent(detail.id)
+        ? -1
+        : timings.indexAt(position.inMilliseconds);
+    if (index == _sentence || !mounted) return;
+    setState(() {
+      _sentence = index;
+      _markedHtml =
+          index < 0 ? null : _readDoc!.mark(timings!.sentences[index]);
+    });
+    if (index >= 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _follow());
+    }
+  }
+
+  void _toggleReadAlong() {
+    setState(() => _readAlongOn = !_readAlongOn);
+    _sentence = -2; // forceer opnieuw tekenen
+    _onPosition(_player.position);
+  }
+
+  /// Houd de zin in beeld, behalve kort nadat de lezer zelf heeft gescrold.
+  void _follow() {
+    final ctx = _anchorKey.currentContext;
+    if (ctx == null || !mounted) return;
+    if (DateTime.now().difference(_userScrolledAt) <
+        const Duration(seconds: 5)) {
+      return;
+    }
+    final box = ctx.findRenderObject() as RenderBox?;
+    if (box == null || !box.attached) return;
+    final y = box.localToGlobal(Offset.zero).dy;
+    final h = MediaQuery.sizeOf(context).height;
+    if (y >= h * 0.2 && y <= h * 0.7) return;
+    final reduce = MediaQuery.of(context).disableAnimations;
+    Scrollable.ensureVisible(ctx,
+        alignment: 0.35,
+        duration: reduce ? Duration.zero : const Duration(milliseconds: 400),
+        curve: Curves.easeInOut);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,19 +148,48 @@ class _ArticleScreenState extends State<ArticleScreen> {
           if (summary == null) {
             return Scaffold(appBar: AppBar(), body: const LoadingView());
           }
-          return CustomScrollView(slivers: [
-            _Header(article: summary),
-            SliverToBoxAdapter(child: _Intro(article: summary, detail: detail)),
-            if (detail == null)
-              const SliverToBoxAdapter(child: LoadingView())
-            else
-              SliverPadding(
-                padding:
-                    const EdgeInsets.fromLTRB(Space.l, Space.s, Space.l, 160),
-                sliver: SliverToBoxAdapter(
-                    child: _Body(html: detail.html, articleUrl: detail.url)),
+          final sentence =
+              _sentence >= 0 ? _timings!.sentences[_sentence] : null;
+          return NotificationListener<UserScrollNotification>(
+            onNotification: (_) {
+              _userScrolledAt = DateTime.now();
+              return false;
+            },
+            child: CustomScrollView(slivers: [
+              _Header(
+                article: summary,
+                actions: [
+                  if (_timings != null && _player.isCurrent(summary.id))
+                    IconButton(
+                      tooltip: _readAlongOn
+                          ? 'Meelezen uitzetten'
+                          : 'Meelezen aanzetten',
+                      onPressed: _toggleReadAlong,
+                      icon: Icon(_readAlongOn
+                          ? Icons.subtitles_rounded
+                          : Icons.subtitles_off_outlined),
+                    ),
+                ],
               ),
-          ]);
+              SliverToBoxAdapter(
+                  child: _Intro(
+                      article: summary,
+                      detail: detail,
+                      titleActive: sentence?.segment == 0)),
+              if (detail == null)
+                const SliverToBoxAdapter(child: LoadingView())
+              else
+                SliverPadding(
+                  padding:
+                      const EdgeInsets.fromLTRB(Space.l, Space.s, Space.l, 160),
+                  sliver: SliverToBoxAdapter(
+                      child: _Body(
+                          html: _markedHtml ?? detail.html,
+                          articleUrl: detail.url,
+                          anchorKey: _anchorKey)),
+                ),
+            ]),
+          );
         },
       ),
       bottomNavigationBar: const SafeArea(top: false, child: MiniPlayer()),
@@ -80,8 +198,9 @@ class _ArticleScreenState extends State<ArticleScreen> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.article});
+  const _Header({required this.article, this.actions = const []});
   final ArticleSummary article;
+  final List<Widget> actions;
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +211,7 @@ class _Header extends StatelessWidget {
       expandedHeight: width * 0.78,
       backgroundColor: Color.lerp(color, Colors.black, 0.45),
       foregroundColor: Colors.white,
+      actions: actions,
       flexibleSpace: FlexibleSpaceBar(
         background: DecoratedBox(
           decoration: BoxDecoration(
@@ -131,9 +251,13 @@ class _Header extends StatelessWidget {
 }
 
 class _Intro extends StatelessWidget {
-  const _Intro({required this.article, required this.detail});
+  const _Intro(
+      {required this.article, required this.detail, this.titleActive = false});
   final ArticleSummary article;
   final ArticleDetail? detail;
+
+  /// De titel wordt op dit moment voorgelezen.
+  final bool titleActive;
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +305,14 @@ class _Intro extends StatelessWidget {
                     fontWeight: FontWeight.w700)),
           ),
         const SizedBox(height: Space.xs),
-        SelectableText(article.title, style: t.headlineSmall),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            color: titleActive ? readAlongHighlight : Colors.transparent,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: SelectableText(article.title, style: t.headlineSmall),
+        ),
         if (article.authorLine.isNotEmpty) ...[
           const SizedBox(height: Space.xs),
           Wrap(spacing: Space.s, children: [
@@ -277,11 +408,18 @@ class _Intro extends StatelessWidget {
   }
 }
 
+/// Achtergrond van de zin die wordt voorgelezen (merkkleur, licht doorschijnend).
+const readAlongHighlight = Color(0x38F43160);
+
 /// Tekst letterlijk zoals de site hem publiceert (veilige HTML uit de API); alleen opmaak, nooit inhoud aanpassen.
 class _Body extends StatelessWidget {
-  const _Body({required this.html, required this.articleUrl});
+  const _Body(
+      {required this.html, required this.articleUrl, required this.anchorKey});
   final String html;
   final String articleUrl;
+
+  /// Nulbreed punt vóór de zin die wordt voorgelezen, om naartoe te scrollen.
+  final GlobalKey anchorKey;
 
   @override
   Widget build(BuildContext context) {
@@ -292,20 +430,30 @@ class _Body extends StatelessWidget {
         html,
         textStyle: t.bodyLarge
             ?.copyWith(height: 1.6, fontSize: 17, color: c.onSurface),
+        customWidgetBuilder: (element) =>
+            element.localName == readAlongAnchorTag
+                ? InlineCustomWidget(
+                    child: SizedBox(key: anchorKey, width: 0, height: 0))
+                : null,
         customStylesBuilder: (element) {
           switch (element.localName) {
+            case readAlongMarkTag:
+              return {
+                'background-color': 'rgba(244, 49, 96, 0.22)',
+                'border-radius': '3px'
+              };
             case 'h2':
             case 'h3':
               return {'font-family': 'serif', 'margin-top': '1.2em'};
             case 'blockquote':
               return {
-                'border-left': '3px solid #dc143c',
+                'border-left': '3px solid ${HrpColors.redCss}',
                 'padding-left': '12px',
                 'margin-left': '0',
                 'font-style': 'italic'
               };
             case 'a':
-              return {'color': '#dc143c'};
+              return {'color': HrpColors.redCss};
           }
           // Interface-elementen van de website (knoppen, deel-links) horen niet in de app.
           if (element.attributes.containsKey('data-hrp-ui')) {

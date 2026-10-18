@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../util/read_along.dart';
 import 'models.dart';
 
 class ApiException implements Exception {
@@ -122,6 +123,19 @@ class ApiClient {
   Future<PageResult<SearchResult>> search(String query, {int page = 1}) async {
     final body = await _get('search', {'q': query, 'type': 'article', 'page': '$page'});
     return _page(body, SearchResult.fromJson);
+  }
+
+  /// Zinstijden voor meelezen. Geeft null als ze er niet (meer) zijn: luisteren werkt dan gewoon zonder.
+  Future<ReadAlongTimings?> readAlongTimings(String url) async {
+    try {
+      final res = await _http
+          .get(Uri.parse(resolveMediaUrl(url)), headers: {'Accept': 'application/json'})
+          .timeout(timeout);
+      if (res.statusCode != 200) return null;
+      return ReadAlongTimings.fromJson(jsonDecode(utf8.decode(res.bodyBytes)));
+    } catch (_) {
+      return null;
+    }
   }
 
   void dispose() => _http.close();

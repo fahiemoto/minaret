@@ -27,6 +27,10 @@ class IdlePlayer extends Fake with ChangeNotifier implements PlayerController {
   ArticleSummary? get current => null;
   @override
   bool isCurrent(int articleId) => false;
+  @override
+  Stream<Duration> get positionStream => const Stream.empty();
+  @override
+  Duration get position => Duration.zero;
 }
 
 void main() {
