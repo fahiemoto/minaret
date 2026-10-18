@@ -30,7 +30,12 @@ class SleepOff extends SleepTimer {
 
 /// Eén speler voor de hele app. Afspelen op de achtergrond en op het vergrendelscherm via just_audio_background.
 class PlayerController extends ChangeNotifier {
-  PlayerController({required this.api, required this.library, required this.settings}) {
+  PlayerController(
+      {required this.api,
+      required this.library,
+      required this.settings,
+      AudioPlayer? audioPlayer})
+      : player = audioPlayer ?? AudioPlayer() {
     _subs.add(player.playerStateStream.listen(_onState));
     _subs.add(player.positionStream.listen(_onPosition));
   }
@@ -38,7 +43,19 @@ class PlayerController extends ChangeNotifier {
   final ApiClient api;
   final LibraryStore library;
   final SettingsStore settings;
-  final AudioPlayer player = AudioPlayer();
+  final AudioPlayer player;
+  Future<void> _pending = Future.value();
+  bool _disposed = false;
+
+  // Wisselen, stoppen en wissen mogen elkaar niet overlappen.
+  Future<void> _enqueue(Future<void> Function() action) {
+    final next = _pending.then((_) async {
+      if (!_disposed) await action();
+    });
+    _pending = next.catchError((Object _) {});
+    return next;
+  }
+
   final List<StreamSubscription<dynamic>> _subs = [];
 
   ArticleSummary? _current;
@@ -60,7 +77,10 @@ class PlayerController extends ChangeNotifier {
   bool isCurrent(int articleId) => _current?.id == articleId;
 
   /// Start (of hervat) een artikel. Gaat verder waar je gebleven was, tenzij het al beluisterd is.
-  Future<void> playArticle(ArticleDetail article) async {
+  Future<void> playArticle(ArticleDetail article) =>
+      _enqueue(() => _playArticle(article));
+
+  Future<void> _playArticle(ArticleDetail article) async {
     final url = article.audio.url;
     if (!article.audio.ready || url == null) {
       _error = 'Voor dit artikel is nog geen audio beschikbaar.';
@@ -69,18 +89,19 @@ class PlayerController extends ChangeNotifier {
     }
     if (isCurrent(article.id) && player.audioSource != null) {
       _completed = false;
-      await player.play();
+      _startPlayback();
       return;
     }
     await _saveProgress();
     _completed = false;
-    _current = article.toSummary();
+    _current = null;
     _error = null;
     _loading = true;
     notifyListeners();
 
     final saved = library.progressFor(article.id);
-    final start = (saved != null && !saved.finished) ? saved.position : Duration.zero;
+    final start =
+        (saved != null && !saved.finished) ? saved.position : Duration.zero;
     final art = article.imageWide ?? article.image;
     try {
       await player.setAudioSource(
@@ -89,30 +110,50 @@ class PlayerController extends ChangeNotifier {
           tag: MediaItem(
             id: '${article.id}',
             title: article.title,
-            artist: article.authorLine.isEmpty ? 'Het Rechte Pad' : article.authorLine,
+            artist: article.authorLine.isEmpty
+                ? 'Het Rechte Pad'
+                : article.authorLine,
             album: article.category?.name ?? 'Het Rechte Pad',
             artUri: art == null ? null : Uri.parse(api.resolveMediaUrl(art)),
-            duration: article.audio.durationSeconds == null ? null : Duration(seconds: article.audio.durationSeconds!),
+            duration: article.audio.durationSeconds == null
+                ? null
+                : Duration(seconds: article.audio.durationSeconds!),
           ),
         ),
         initialPosition: start,
       );
       _lastSaved = start;
       await player.setSpeed(settings.speed);
+      if (_disposed) return;
+      _current = article.toSummary();
       _loading = false;
       notifyListeners();
-      unawaited(player.play());
+      _startPlayback();
     } catch (e) {
+      if (_disposed) return;
       _loading = false;
       _error = 'De audio kon niet worden geladen. Probeer het later opnieuw.';
       notifyListeners();
     }
   }
 
-  Future<void> togglePlay() {
-    if (player.playing) return player.pause();
-    _completed = false;
-    return player.play();
+  void _startPlayback() {
+    final article = _current;
+    unawaited(player.play().catchError((Object error) {
+      if (_disposed || _current != article) return;
+      _error = 'De audio kon niet worden afgespeeld. Probeer het opnieuw.';
+      notifyListeners();
+    }));
+  }
+
+  Future<void> togglePlay() async {
+    if (_loading || _current == null) return;
+    if (player.playing) {
+      await player.pause();
+    } else {
+      _completed = false;
+      _startPlayback();
+    }
   }
 
   Future<void> seekRelative(Duration offset) async {
@@ -148,10 +189,17 @@ class PlayerController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> stop() async {
+  Future<void> stop() => _enqueue(_stop);
+
+  Future<void> clearLibrary() => _enqueue(() async {
+        await _stop();
+        await library.clearAll();
+      });
+
+  Future<void> _stop() async {
     await _saveProgress();
-    await player.stop();
     _current = null;
+    await player.stop();
     setSleepTimer(null);
     notifyListeners();
   }
@@ -162,6 +210,7 @@ class PlayerController extends ChangeNotifier {
   }
 
   void _onState(PlayerState state) {
+    if (_loading || _current == null || _disposed) return;
     if (state.processingState == ProcessingState.completed) {
       if (_completed) return;
       _completed = true;
@@ -176,6 +225,7 @@ class PlayerController extends ChangeNotifier {
   }
 
   void _onPosition(Duration pos) {
+    if (_loading || _current == null || _disposed) return;
     // Elke 10 seconden luisteren lokaal vastleggen (zonder de hele UI opnieuw te tekenen).
     if ((pos - _lastSaved).abs() >= const Duration(seconds: 10)) {
       _saveProgress(notify: false);
@@ -195,6 +245,7 @@ class PlayerController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _sleepTimer?.cancel();
     for (final s in _subs) {
       s.cancel();

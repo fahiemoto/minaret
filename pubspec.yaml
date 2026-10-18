@@ -21,6 +21,7 @@ dependencies:
   cached_network_image: ^3.4.1
   # Rendert de veilige HTML uit de API letterlijk (tekst wordt nooit aangepast).
   flutter_widget_from_html_core: ">=0.15.2 <0.18.0"
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:

@@ -7,7 +7,7 @@ Native app voor iOS en Android, gebouwd in Flutter met één codebase. De app to
 - **Home**: uitgelichte carrousel, "Verder luisteren", rijen "Om naar te luisteren", "Nieuw" en een rij per hoofdonderwerp, plus filterchips.
 - **Ontdek**: tegels per onderwerp met het aantal artikelen, plus subonderwerpen.
 - **Mijn lijst**: verder luisteren, bewaard en beluisterd. In v1 staat dit alleen op het toestel, er zijn nog geen accounts.
-- **Zoeken**: doorzoekt alle artikelen via de zoekindex van de site.
+- **Zoeken**: doorzoekt alle artikelen via de zoekindex van de site, met vervolgpagina’s via “Meer resultaten”.
 - **Artikel**: cover, auteur(s), luister- en leesduur, de knop Luister / Verder luisteren, bewaren en de volledige tekst.
 - **Speler**:
   - afspelen op de achtergrond en bediening vanaf het vergrendelscherm;
@@ -16,18 +16,19 @@ Native app voor iOS en Android, gebouwd in Flutter met één codebase. De app to
   - slaaptimer;
   - "Lees mee";
   - verder luisteren waar je gebleven was.
-- **Profiel**: licht, donker of systeemthema, standaard afspeelsnelheid en lokale gegevens wissen.
+- **Profiel**: licht, donker of systeemthema, standaard afspeelsnelheid en lokale gegevens wissen. Wissen stopt eerst de speler en slaaptimer.
+- **Links in artikelen**: eigen artikellinks openen in de app; externe links openen in de browser of bijbehorende app.
 - **Gegenereerde covers** in HRP-stijl (rood #dc143c plus palette) als een artikel geen foto heeft.
 
 Komt later: accounts met synchronisatie, betaalde content, CarPlay/Android Auto en meelezen per zin.
 
 ## Starten
 
-Je hebt de Flutter SDK nodig (3.27 of nieuwer) en daarnaast Xcode voor iOS en/of Android Studio voor Android.
+Je hebt de Flutter SDK nodig (3.27 of nieuwer) en daarnaast Xcode voor iOS en/of Android Studio voor Android. De platformprojecten zijn aangemaakt met Flutter 3.47.7; gebruik bij voorkeur die versie of nieuwer. De iOS- en Android-projectbestanden en `pubspec.lock` staan in de repository.
 
 ```bash
 cd minaret
-bash tool/setup_platforms.sh   # eenmalig: maakt ios/ en android/ en zet achtergrondaudio aan
+bash tool/setup_platforms.sh   # zet platformconfiguratie voor achtergrondaudio klaar
 ```
 
 Daarna start je de app tegen de lokale site (MAMP).
@@ -67,7 +68,7 @@ lib/
   widgets/    covers, kaarten, rijen, carrousel, tegels, minispeler
   screens/    home, ontdek, lijst, mijn lijst, zoeken, artikel, speler, profiel
 tool/         platform-setup voor achtergrondaudio
-test/         unit-tests voor modellen, opmaak en mijn lijst
+test/         unit- en widgettests voor modellen, opslag, speler, zoeken, thema en links
 ```
 
 Het ontwerp is geïnspireerd op de indeling van de voorbeeldschermen in `schermen/`. Kleuren, logo en vormen zijn eigen HRP-huisstijl; er zijn geen merk-assets van de referentie overgenomen.

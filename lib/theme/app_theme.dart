@@ -18,20 +18,26 @@ class AppTheme {
     ).copyWith(
       surfaceContainerLow: dark ? HrpColors.darkSurface : Colors.white,
       surfaceContainer: dark ? HrpColors.darkSurface : const Color(0xFFF1EEE9),
-      surfaceContainerHigh: dark ? HrpColors.darkSurfaceHigh : const Color(0xFFE9E5DF),
-      onSurfaceVariant: dark ? const Color(0xFFB9B5AE) : const Color(0xFF5E5A54),
+      surfaceContainerHigh:
+          dark ? HrpColors.darkSurfaceHigh : const Color(0xFFE9E5DF),
+      onSurfaceVariant:
+          dark ? const Color(0xFFB9B5AE) : const Color(0xFF5E5A54),
       outlineVariant: dark ? const Color(0xFF34343A) : const Color(0xFFDDD8D0),
     );
 
-    final base = ThemeData(useMaterial3: true, colorScheme: scheme, brightness: b);
-    final text = base.textTheme.apply(bodyColor: scheme.onSurface, displayColor: scheme.onSurface);
+    final base =
+        ThemeData(useMaterial3: true, colorScheme: scheme, brightness: b);
+    final text = base.textTheme
+        .apply(bodyColor: scheme.onSurface, displayColor: scheme.onSurface);
 
     return base.copyWith(
       scaffoldBackgroundColor: scheme.surface,
       textTheme: text.copyWith(
         // Serif voor koppen sluit aan bij het woordmerk; body blijft goed leesbaar sans-serif.
-        headlineMedium: text.headlineMedium?.copyWith(fontFamily: 'serif', fontWeight: FontWeight.w700, height: 1.15),
-        headlineSmall: text.headlineSmall?.copyWith(fontFamily: 'serif', fontWeight: FontWeight.w700, height: 1.2),
+        headlineMedium: text.headlineMedium?.copyWith(
+            fontFamily: 'serif', fontWeight: FontWeight.w700, height: 1.15),
+        headlineSmall: text.headlineSmall?.copyWith(
+            fontFamily: 'serif', fontWeight: FontWeight.w700, height: 1.2),
         titleLarge: text.titleLarge?.copyWith(fontWeight: FontWeight.w700),
         titleMedium: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
       ),
@@ -58,10 +64,6 @@ class AppTheme {
         trackHeight: 3,
       ),
       dividerTheme: DividerThemeData(color: scheme.outlineVariant, space: 1),
-      pageTransitionsTheme: const PageTransitionsTheme(builders: {
-        TargetPlatform.android: ZoomPageTransitionsBuilder(),
-        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-      }),
     );
   }
 }
